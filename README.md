@@ -84,3 +84,5 @@ feature/*  ──PR──▶  development  ──PR──▶  main
 - Geliştirme `feature/*` dallarında yapılır, onaylanınca `development`'a squash
   merge edilir.
 - CI her PR'da aynı Docker imajını kurup lint + typecheck + test + build koşar.
+
+<!-- koruma denemesi -->
