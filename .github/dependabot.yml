@@ -21,3 +21,10 @@ updates:
     schedule:
       interval: monthly
     target-branch: development
+    # Node 24 LTS'te kalıyoruz. Dependabot major atlama önermesin; 26 henüz
+    # LTS değil ve LTS dışına çıkmak istemiyorum. LTS'e geçtiğinde bu bloğu
+    # kaldırmak yeterli.
+    ignore:
+      - dependency-name: node
+        update-types:
+          - version-update:semver-major
