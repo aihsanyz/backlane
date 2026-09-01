@@ -1,0 +1,9 @@
+root=$(git rev-parse --show-toplevel)
+cd "$root"
+
+msg=$1
+case "$msg" in
+  /*) msg=$(realpath --relative-to="$root" "$msg" 2>/dev/null || printf '%s' "$msg") ;;
+esac
+
+"$root/dx" exec pnpm exec commitlint --edit "$msg"

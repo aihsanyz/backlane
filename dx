@@ -62,7 +62,7 @@ case "$cmd" in
   pnpm)       in_container pnpm "$@" ;;
   exec)       in_container "$@" ;;
 
-  lint)       turbo_task lint "$@" ;;
+  lint)       in_container pnpm exec biome check . "$@" ;;
   fmt|format) in_container pnpm exec biome check --write . ;;
   typecheck)  turbo_task typecheck "$@" ;;
   test)       turbo_task test "$@" ;;
@@ -70,7 +70,7 @@ case "$cmd" in
   run)        [ $# -ge 1 ] || die "kullanim: ./dx run <turbo-task>"
               t=$1; shift; turbo_task "$t" "$@" ;;
 
-  check)      turbo_task lint && turbo_task typecheck && turbo_task test ;;
+  check)      in_container pnpm exec biome check . && turbo_task typecheck && turbo_task test ;;
 
   doctor)
     printf 'docker    : %s\n' "$(docker --version)"
