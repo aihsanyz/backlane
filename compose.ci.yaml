@@ -1,0 +1,11 @@
+# CI override: named volume yerine repo içi dizinler, böylece actions/cache
+# bunları cacheleyebiliyor.
+services:
+  dev:
+    environment:
+      CI: "1"
+      HUSKY: "0"
+    volumes:
+      - .:/workspace
+      - ./.cache/node_modules:/workspace/node_modules
+      - ./.cache/pnpm-store:/pnpm/store

@@ -1,0 +1,22 @@
+name: Branch policy
+
+# main'e yalnizca development uzerinden girilsin. GitHub'in kendi kurallarinda
+# "PR sadece su daldan gelebilir" diye bir secenek yok, bu yuzden burada
+# denetliyoruz.
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  kaynak-dal:
+    name: main sadece development'tan
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Kaynak dali dogrula
+        run: |
+          if [ "${{ github.head_ref }}" != "development" ]; then
+            echo "::error::main'e PR yalnizca development dalindan acilabilir. Gelen dal: ${{ github.head_ref }}"
+            exit 1
+          fi
+          echo "Kaynak dal development, sorun yok."

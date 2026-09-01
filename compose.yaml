@@ -1,0 +1,29 @@
+name: backlane
+
+services:
+  dev:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      target: dev
+      args:
+        UID: "${HOST_UID:-1000}"
+        GID: "${HOST_GID:-1000}"
+    working_dir: /workspace
+    command: sleep infinity
+    init: true
+    stop_grace_period: 1s
+    environment:
+      # Turbo'nun renkli/etkileşimli çıktısı exec üzerinden düzgün aksın.
+      FORCE_COLOR: "1"
+    volumes:
+      - .:/workspace
+      # Kök node_modules (içinde .pnpm sanal store'u) named volume'de: host
+      # kirlenmiyor. packages/*/node_modules sadece birkaç KB'lık symlink
+      # dizini, onlar bind-mount üzerinde kalabilir.
+      - node_modules:/workspace/node_modules
+      - pnpm_store:/pnpm/store
+
+volumes:
+  node_modules:
+  pnpm_store:

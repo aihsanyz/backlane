@@ -1,0 +1,86 @@
+#!/bin/sh
+# backlane gelistirme sarmalayicisi.
+#
+# Makinede node/pnpm yok; her sey konteynerde calisiyor. Bu script tek giris
+# noktasi: "docker compose run --rm -T dev pnpm ..." yazmaktan kurtariyor.
+#
+#   ./dx up | down | sh | doctor
+#   ./dx install | add <paket> [-F @backlane/core]
+#   ./dx lint | fmt | typecheck | test | build
+#   ./dx run <turbo-task>
+#   ./dx pnpm <...>          ham pnpm
+#   ./dx exec <...>          konteynerde keyfi komut (git hook'lari bunu kullanir)
+
+set -eu
+
+ROOT=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
+cd "$ROOT"
+
+SERVICE=dev
+
+HOST_UID=$(id -u)
+HOST_GID=$(id -g)
+export HOST_UID HOST_GID
+
+die() { printf '%s\n' "$*" >&2; exit 1; }
+
+command -v docker >/dev/null 2>&1 || die "docker bulunamadi. Bu proje tamamen docker uzerinde calisiyor."
+
+is_running() {
+  [ -n "$(docker compose ps --status=running --quiet "$SERVICE" 2>/dev/null)" ]
+}
+
+# Konteyner ayaktaysa exec (~100ms), degilse tek seferlik run --rm (~1-3s).
+in_container() {
+  if is_running; then
+    docker compose exec -T "$SERVICE" "$@"
+  else
+    docker compose run --rm -T "$SERVICE" "$@"
+  fi
+}
+
+turbo_task() {
+  task=$1; shift
+  in_container pnpm exec turbo run "$task" "$@"
+}
+
+cmd=${1:-help}
+[ $# -gt 0 ] && shift || true
+
+case "$cmd" in
+  up)        docker compose up -d --build "$SERVICE" ;;
+  down)      docker compose down --remove-orphans ;;
+  nuke)      docker compose down --remove-orphans --volumes ;;
+  rebuild)   docker compose build --no-cache "$SERVICE" ;;
+  sh|shell)
+    if is_running; then docker compose exec "$SERVICE" bash
+    else docker compose run --rm "$SERVICE" bash; fi ;;
+
+  install|i)  in_container pnpm install "$@" ;;
+  add)        in_container pnpm add "$@" ;;
+  remove|rm)  in_container pnpm remove "$@" ;;
+  pnpm)       in_container pnpm "$@" ;;
+  exec)       in_container "$@" ;;
+
+  lint)       in_container pnpm exec biome check . "$@" ;;
+  fmt|format) in_container pnpm exec biome check --write . ;;
+  typecheck)  turbo_task typecheck "$@" ;;
+  test)       turbo_task test "$@" ;;
+  build)      turbo_task build "$@" ;;
+  run)        [ $# -ge 1 ] || die "kullanim: ./dx run <turbo-task>"
+              t=$1; shift; turbo_task "$t" "$@" ;;
+
+  check)      in_container pnpm exec biome check . && turbo_task typecheck && turbo_task test ;;
+
+  doctor)
+    printf 'docker    : %s\n' "$(docker --version)"
+    printf 'compose   : %s\n' "$(docker compose version --short)"
+    printf 'host uid  : %s:%s\n' "$HOST_UID" "$HOST_GID"
+    printf 'servis    : %s\n' "$(is_running && echo 'ayakta' || echo 'kapali')"
+    in_container sh -c 'printf "node      : %s\npnpm      : %s\n" "$(node -v)" "$(pnpm -v)"' ;;
+
+  help|-h|--help)
+    awk 'NR>1 && /^#/ { sub(/^# ?/, ""); print; next } NR>1 { exit }' "$0" ;;
+  *)
+    die "bilinmeyen komut: $cmd  (./dx help)" ;;
+esac

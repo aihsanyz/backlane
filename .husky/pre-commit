@@ -1,0 +1,12 @@
+# Host'ta node yok: butun isler dx uzerinden konteynerde donuyor.
+root=$(git rev-parse --show-toplevel)
+cd "$root"
+
+git diff --cached --quiet && exit 0
+
+"$root/dx" exec pnpm exec biome check --staged --write --no-errors-on-unmatched
+
+# biome duzeltme yaptiysa dosyalari tekrar stage'e al
+git diff --cached --name-only --diff-filter=ACMR -z | xargs -0 -r git add --
+
+"$root/dx" exec pnpm exec turbo run typecheck
