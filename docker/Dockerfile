@@ -3,7 +3,7 @@
 # ---- base -------------------------------------------------------------------
 # Debian tabanlı imaj: alpine/musl bazı native modüllerde beklenmedik derleme
 # hataları çıkarıyor, o riski almaya değmez.
-FROM node:24-slim AS base
+FROM node:26-slim AS base
 
 ARG UID=1000
 ARG GID=1000
