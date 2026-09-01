@@ -1,0 +1,27 @@
+# Korumali dallara dogrudan push etme. Sunucuda ruleset zaten reddediyor ama
+# bu hook aninda ve anlasilir sekilde uyariyor; ayrica repo private'a cevrilir
+# de sunucu korumasi devre disi kalirsa tek kalan engel bu olur.
+korumali="main development"
+
+while read -r _yerel_ref _yerel_sha uzak_ref _uzak_sha; do
+  dal=${uzak_ref#refs/heads/}
+  for k in $korumali; do
+    if [ "$dal" = "$k" ]; then
+      echo ""
+      echo "  '$dal' dalina dogrudan push edilmiyor."
+      echo ""
+      echo "  Bunun yerine:"
+      echo "    git switch -c feature/<ad>"
+      echo "    git push -u origin feature/<ad>"
+      echo "    gh pr create --base development"
+      echo ""
+      echo "  (gercekten gerekiyorsa: git push --no-verify)"
+      echo ""
+      exit 1
+    fi
+  done
+done
+
+# Kirik testi push etmeyelim. turbo cache sayesinde degisiklik yoksa aninda biter.
+root=$(git rev-parse --show-toplevel)
+"$root/dx" exec pnpm exec turbo run test < /dev/null
