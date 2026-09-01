@@ -1,0 +1,22 @@
+# bağımlılıklar
+node_modules/
+.pnpm-store/
+
+# build çıktıları
+dist/
+*.tsbuildinfo
+
+# cache
+.turbo/
+.cache/
+coverage/
+
+# ortam
+.env
+.env.*
+!.env.example
+
+# editör / os
+.DS_Store
+*.swp
+.idea/
