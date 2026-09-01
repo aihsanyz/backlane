@@ -4,6 +4,7 @@ services:
   dev:
     environment:
       CI: "1"
+      HUSKY: "0"
     volumes:
       - .:/workspace
       - ./.cache/node_modules:/workspace/node_modules
