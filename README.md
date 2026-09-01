@@ -70,6 +70,7 @@ projeyi **Dev Container** olarak açman gerekiyor (VS Code / Cursor →
   devrediyor:
   - `pre-commit` → staged dosyaları biome ile düzeltir, sonra typecheck
   - `commit-msg` → commitlint (conventional commits)
+  - `pre-push` → `main` ve `development`'a doğrudan push'u engeller, testleri koşar
 - Hook'lar `./dx install` sırasında kuruluyor. Acil bir durumda `--no-verify`
   ile atlanabilir ama CI aynı kontrolleri tekrar çalıştırır.
 
